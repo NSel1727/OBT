@@ -7,6 +7,7 @@
 #
 # Import settings
 #
+
 # Git branch
 
 . ./settings.sh
@@ -35,7 +36,6 @@ LOG_DIR=~/HPCCSystems-regression/log
 
 BIN_HOME=~/
 
-#TEST_ROOT=${BUILD_DIR}/CE/platform
 PLATFORM_HOME=${TEST_ROOT}
 TEST_ENGINE_HOME=${PLATFORM_HOME}/testing/regress
 
@@ -54,21 +54,12 @@ ML_PBBLAST_REPO=https://github.com/hpcc-systems/PBblas.git
 ML_TEST_RESULT_LOG=${OBT_LOG_DIR}/mltest.${LONG_DATE}.log
 ML_TEST_SUMMARY=${OBT_LOG_DIR}/mltests.summary
 
-
-TIMEOUTED_FILE_LISTPATH=${BIN_HOME}
-TIMEOUTED_FILE_LIST_NAME=${TIMEOUTED_FILE_LISTPATH}/MlTimeoutedTests.csv
-TIMEOUT_TAG="//timeout 900"
-
 if [[ "${SYSTEM_ID}" =~ "Ubuntu" ]]
 then
     HPCC_SERVICE="${SUDO} /etc/init.d/hpcc-init"
-    DAFILESRV_STOP="${SUDO} /etc/init.d/dafilesrv stop"
 else
     HPCC_SERVICE="${SUDO} service hpcc-init"
-    DAFILESRV_STOP="${SUDO} service dafilesrv stop"
 fi
-#STATUS_HPCC="${SUDO} service hpcc-init status | grep -c 'running'"
-#NUMBER_OF_RUNNING_HPCC_COMPONENT="${SUDO} service hpcc-init status | wc -l "
 
 #
 #----------------------------------------------------
@@ -85,9 +76,7 @@ ProcessLog()
 
     WriteLog "TestResult:Total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" "${ML_TEST_LOG}"
     echo "TestResult:mltests:total:${total} passed:${passed} failed:${failed} elaps:${elapsed}" > ${ML_TEST_SUMMARY}
-
 }
-
 
 #
 #----------------------------------------------------
@@ -123,7 +112,6 @@ else
     WriteLog "No target selected. This is a dry run." "${ML_TEST_LOG}"
 fi
 
-
 #
 #---------------------------
 #
@@ -141,9 +129,8 @@ WriteLog "Clean system" "${ML_TEST_LOG}"
 
 [ ! -e $ML_TEST_ROOT ] && mkdir -p $ML_TEST_ROOT
 
-#rm -rf ${PERF_TEST_ROOT}/*
-cd  ${PERF_TEST_ROOT}
 
+cd  ${PERF_TEST_ROOT}
  
 #
 #---------------------------
@@ -176,8 +163,7 @@ then
     WriteLog " Build HPCC Platform from ${BUILD_HOME} ..." "${ML_TEST_LOG}"
     WriteLog "                                           " "${ML_TEST_LOG}"
 
-    #
-    #-------------------------------------------------------------------------------------
+    # #-------------------------------------------------------------------------------------
     # Build HPCC
     #
     
@@ -207,24 +193,18 @@ then
 
     ${CMD} >> ${BUILD_LOG_FILE} 2>&1
 
-    #res=$( ${CMD} 2>&1 )
-    #WriteLog "build result:${res}" "${ML_TEST_LOG}"
-
     if [ $? -ne 0 ] 
     then
         WriteLog "Build failed: build has errors " "${ML_TEST_LOG}"
-        buildResult=FAILED
         exit
     else
         ls -l hpcc*${PKG_EXT} >/dev/null 2>&1
         if [ $? -ne 0 ] 
         then
             WriteLog "Build failed: no rpm package found " "${ML_TEST_LOG}"
-            buildResult=FAILED
             exit
         else
             WriteLog "Build succeed" "${ML_TEST_LOG}"
-            buildResult=SUCCEED
         fi
     fi
 
@@ -268,6 +248,7 @@ then
     # --------------------------------------------------------------
     # Install HPCC
     #
+    
     WriteLog "Install HPCC Platform ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     
     res=$( ${SUDO} ${PKG_INST_CMD} ${BUILD_HOME}/${HPCC_PACKAGE} 2>&1 )
@@ -310,96 +291,39 @@ then
     else
         WriteLog "The environment.xml file Updated. ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
     fi
-
-
-
-    #
-    #----------------------------------------------------
-    #
-    # Kill Cassandra if it used too much memory
-    #
-    WriteLog "Check memory on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-    
-    freeMem=$( GetFreeMem )
-
-    WriteLog "Free memory is: $( GetFreeMemGB ) on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-    
-    if [[ $freeMem -lt $MEMSIZE_KB ]]
-    then
-        WriteLog "Free memory too low on ${TARGET_PLATFORM} and we need ${ML_THOR_MEMSIZE_GB}.!" "${ML_TEST_LOG}"
-
-        cassandraPID=$( ps ax  | grep '[c]assandra' | awk '{print $1}' )
-    
-        if [ -n "$cassandraPID" ]
-        then
-            WriteLog "Kill Cassandra (pid: ${cassandraPID})  on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-        
-            ${SUDO}  kill -9 ${cassandraPID}
-            sleep 5
-    
-            freeMem=$( GetFreeMem  )
-            if [[ "$freeMem" -lt 3777356 ]]
-            then
-                WriteLog "The free memory ($( GetFreeMemGB )) is still too low! Cannot start HPCC Systems!! Give it up on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-        
-                # send email to Agyi
-                echo "After the kill Cassandra the Performance test free memory (${freeMem} kB) is still too low on ${TARGET_PLATFORM}! Performance test stopped!" | mailx -s "OBT Memory problem" -u $USER  ${ADMIN_EMAIL_ADDRESS}
-        
-                exit -1
-            fi
-        fi
-        WriteLog "Free memory is: $( GetFreeMemGB ) on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-    fi
-    
-
-    #
-    #---------------------------
-    #
-    # Kill Couchbase server if running and ecessary
-    #
-    #  ps aux | grep '[c]ouchbase'
-    #  sudo /opt/couchbase/bin/couchbase-server -k 
-    #
-    #WriteLog "Check HPCC Systems on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-
-    #
-    #---------------------------
-    # Patch environment.conf
-    #sudo sed -i -e 's/interface=\(*\)/interface=10.*/' /etc/HPCCSystems/environment.conf
-    #WriteLog "Interface setting in environment.conf file is:" "${ML_TEST_LOG}"
-    #WriteLog "$( egrep 'interface' /etc/HPCCSystems/environment.conf )" "${ML_TEST_LOG}"
     
     #
     #---------------------------
     #
     # Check HPCC Systems
     #
+    
     WriteLog "Check HPCC Systems on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
 
-    NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | egrep -i -v 'eclagent' | wc -l )
+    NUMBER_OF_HPCC_COMPONENTS=$( /opt/HPCCSystems/sbin/configgen -env /etc/HPCCSystems/environment.xml -list | grep -E -i -v 'eclagent' | wc -l )
     
-    hpccRunning=$( ${HPCC_SERVICE} status | grep -c 'running' )
+    HPCC_RUNNING=$( ${HPCC_SERVICE} status | grep -c 'running' )
 
-    if [[ "$hpccRunning" -ne "$NUMBER_OF_HPCC_COMPONENTS" ]]
+    if [[ "$HPCC_RUNNING" -ne "$NUMBER_OF_HPCC_COMPONENTS" ]]
     then
         WriteLog "Start HPCC System on ${TARGET_PLATFORM}..." "${ML_TEST_LOG}"
         
-        hpccStatus=$( ${HPCC_SERVICE} start  2>&1 )
+        HPCC_STATUS=$( ${HPCC_SERVICE} start  2>&1 )
  
-        WriteLog "Result:\n${hpccStatus}" "${ML_TEST_LOG}"
+        WriteLog "Result:\n${HPCC_STATUS}" "${ML_TEST_LOG}"
     fi
     
     # give it some time
     sleep 5
     
-    hpccRunning=$( ${HPCC_SERVICE} status | grep -c 'running' )
-    if [[ "$hpccRunning" -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
+    HPCC_RUNNING=$( ${HPCC_SERVICE} status | grep -c 'running' )
+    if [[ "$HPCC_RUNNING" -ne ${NUMBER_OF_HPCC_COMPONENTS} ]]
     then
-        WriteLog "Unable start HPCC system!! Only ${hpccRunning} component is up on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
+        WriteLog "Unable start HPCC system!! Only ${HPCC_RUNNING} component is up on ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
         exit -2
     else
-        hpccStatus=$( ${HPCC_SERVICE} status )
-        WriteLog "HPCC system status: \n${hpccStatus}" "${ML_TEST_LOG}"
+        HPCC_STATUS=$( ${HPCC_SERVICE} status )
+        WriteLog "HPCC system status: \n${HPCC_STATUS}" "${ML_TEST_LOG}"
     fi
     
     #
@@ -407,71 +331,72 @@ then
     #
     # Get test from github
     #
+    
     WriteLog "Get the latest ML core and PBblas" "${ML_TEST_LOG}"
     
     cd  ${PERF_TEST_ROOT}
-    myPwd=$( pwd )
+    MY_PWD=$( pwd )
 
-    WriteLog "Pwd: ${myPwd} for $TARGET_PLATFORM" "${ML_TEST_LOG}"
+    WriteLog "Pwd: ${MY_PWD} for $TARGET_PLATFORM" "${ML_TEST_LOG}"
 
     WriteLog "Install ML_Core bundle from GitHub" "${ML_TEST_LOG}"
 
-    tryCountMax=5
-    tryCount=$tryCountMax
-    tryDelay=2m
+    TRY_COUNT_MAX=5
+    TRY_COUNT=$TRY_COUNT_MAX
+    TRY_DELAY=2m
 
     while true
     do
         cRes=$( ecl bundle install --update --force ${ML_CORE_REPO} 2>&1 )
         if [[ 0 -ne  $? ]]
         then
-            tryCount=$(( $tryCount-1 ))
+            TRY_COUNT=$(( $TRY_COUNT-1 ))
 
-            if [[ $tryCount -ne 0 ]]
+            if [[ $TRY_COUNT -ne 0 ]]
             then
-                WriteLog "Wait for ${tryDelay} to try again." "${ML_TEST_LOG}"
-                sleep ${tryDelay}
+                WriteLog "Wait for ${TRY_DELAY} to try again." "${ML_TEST_LOG}"
+                sleep ${TRY_DELAY}
                 continue
             else
-                WriteLog "Install ML_Core bundle was failed after ${tryCountMax} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
+                WriteLog "Install ML_Core bundle was failed after ${TRY_COUNT_MAX} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
                 WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
                 ${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
                 exit -3
             fi
         else
             WriteLog "Install ML_Core bundle was success." "${ML_TEST_LOG}"
-            ML_CORE_VERSION=$( echo "${cRes}" | egrep "^ML_Core" | awk '{ print $2 }' )
-            WriteLog "Version: $( echo "${cRes}" | egrep "^ML_Core" )" "${ML_TEST_LOG}"
+            ML_CORE_VERSION=$( echo "${cRes}" | grep -E "^ML_Core" | awk '{ print $2 }' )
+            WriteLog "Version: $( echo "${cRes}" | grep -E "^ML_Core" )" "${ML_TEST_LOG}"
             break
         fi
     done
     
     WriteLog "Install PBblas bundle from GitHub" "${ML_TEST_LOG}"
 
-    tryCount=$tryCountMax
+    TRY_COUNT=$TRY_COUNT_MAX
 
     while true
     do
         cRes=$( ecl bundle install --update --force ${ML_PBBLAST_REPO} 2>&1)
         if [[ 0 -ne  $? ]]
         then
-            tryCount=$(( $tryCount-1 ))
+            TRY_COUNT=$(( $TRY_COUNT-1 ))
 
-            if [[ $tryCount -ne 0 ]]
+            if [[ $TRY_COUNT -ne 0 ]]
             then
-                WriteLog "Wait for ${tryDelay} to try again." "${ML_TEST_LOG}"
-                sleep ${tryDelay}
+                WriteLog "Wait for ${TRY_DELAY} to try again." "${ML_TEST_LOG}"
+                sleep ${TRY_DELAY}
                 continue
             else    
-               WriteLog "Install PBblas bundle was failed after ${tryCountMax} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
+               WriteLog "Install PBblas bundle was failed after ${TRY_COUNT_MAX} attempts. Result is: ${cRes}" "${ML_TEST_LOG}"
                WriteLog "Archive ${TARGET_PLATFORM} ML logs" "${ML_TEST_LOG}"
                ${BIN_HOME}/archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
                exit -3
             fi
         else
             WriteLog "Install PBblas bundle was success." "${ML_TEST_LOG}"
-            ML_PBLAS_VERSION=$( echo "${cRes}" | egrep "^PBblas" | awk '{ print $2 }' )
-            WriteLog "Version: $( echo "${cRes}" | egrep "^PBblas" )" "${ML_TEST_LOG}"
+            ML_PBLAS_VERSION=$( echo "${cRes}" | grep -E "^PBblas" | awk '{ print $2 }' )
+            WriteLog "Version: $( echo "${cRes}" | grep -E "^PBblas" )" "${ML_TEST_LOG}"
             ML_PBLAS_VERSION_PATH="V${ML_PBLAS_VERSION//./_}"
             ML_TEST_ROOT=~/.HPCCSystems/bundles/_versions/PBblas/${ML_PBLAS_VERSION_PATH}/PBblas
             ML_TEST_HOME=${ML_TEST_ROOT}
@@ -485,20 +410,17 @@ then
         exit -4
     fi
     
-
     cd  ${ML_TEST_HOME}
-    # Temporarly patch ConfTest.ecl to use proper IMPORT for Test 
-    # WriteLog "Temporarily patch ConfTest.ecl to use proper IMPORT" "${ML_TEST_LOG}" 
-    # cp ecl/ConfTest.ecl ecl/ConfTest.bak
-    # sed 's/IMPORT ^.test as Tests;/IMPORT $.^.test as Tests;/' ecl/ConfTest.ecl > temp.ecl && mv -f temp.ecl ecl/ConfTest.ecl
-
-    myPwd=$( pwd )
+    
+    MY_PWD=$( pwd )
+    
     #
     #---------------------------
     #
     # Run ML tests 
     #
-    WriteLog "Run ML tests  on platforms pwd:${myPwd}" "${ML_TEST_LOG}"
+    
+    WriteLog "Run ML tests  on platforms pwd:${MY_PWD}" "${ML_TEST_LOG}"
     
     cd ${ML_TEST_HOME}    
 
@@ -513,12 +435,12 @@ then
     then
         ${CMD} >> ${ML_TEST_LOG} 2>&1
         
-        retCode=$( echo $? )
-        WriteLog "retcode: ${retCode}" "${ML_TEST_LOG}"
+        RET_CODE=$( echo $? )
+        WriteLog "RET_CODE: ${RET_CODE}" "${ML_TEST_LOG}"
     
-        if [ ${retCode} -ne 0 ] 
+        if [ ${RET_CODE} -ne 0 ] 
         then
-            WriteLog "Machine Learning tests on ${TARGET_PLATFORM} returns with ${retCode}" "${ML_TEST_LOG}"
+            WriteLog "Machine Learning tests on ${TARGET_PLATFORM} returns with ${RET_CODE}" "${ML_TEST_LOG}"
             #exit -1
         else 
             ProcessLog "${TARGET_PLATFORM}"
@@ -545,7 +467,6 @@ then
         WriteLog "No ZAP file generated." "${ML_TEST_LOG}"
     fi
 
-
     # Check if any core file generated. If yes, create stack trace with gdb
 
     NUM_OF_ML_CORES=( $(sudo find /var/lib/HPCCSystems/ -iname 'core*' -type f -exec printf "%s\n" '{}' \; ) )
@@ -560,8 +481,7 @@ then
             base=$( dirname $core )
             lastSubdir=${base##*/}
             comp=${lastSubdir##my}
-    
-            #sudo gdb --batch --quiet -ex "set interactive-mode off" -ex "thread apply all bt" -ex "quit" "/opt/HPCCSystems/bin/${comp}" $core | sudo tee "$core.trace" 2>&1
+
             sudo ${GDB_CMD} "/opt/HPCCSystems/bin/${comp}" $core | sudo tee "$core.trace" 2>&1
     
        done
@@ -587,6 +507,7 @@ then
     ./archiveLogs.sh ml-${TARGET_PLATFORM} timestamp=${OBT_TIMESTAMP}
     
     popd
+    
     #
     #---------------------------
     #
@@ -600,7 +521,6 @@ then
         WriteLog "Uninstall HPCC-Platform" "${ML_TEST_LOG}"
     
         UninstallHPCC "${ML_TEST_LOG}" "${ML_WIPE_OFF_HPCC}"
-
     else
         WriteLog "Skip Uninstall HPCC on ${TARGET_PLATFORM} but stop it!" "${ML_TEST_LOG}"
         StopHpcc "${ML_TEST_LOG}"
@@ -619,15 +539,6 @@ then
             WriteLog "The environment.xml file restored. ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
         fi
     fi
-
-    #
-    #----------------------------
-    #
-    # Remove ECL-Bundles
-    #
-    #WriteLog "Remove ECL-Bundles" "${ML_TEST_LOG}"
-    
-    #rm -rf ${PERF_TEST_ROOT}/PerformanceTesting
     
     WriteLog "                                    " "${ML_TEST_LOG}"
     WriteLog "************************************" "${ML_TEST_LOG}"
@@ -639,7 +550,6 @@ else
     WriteLog "***********************************" "${ML_TEST_LOG}"
     WriteLog " Skip ML ${TARGET_PLATFORM} test.  " "${ML_TEST_LOG}"
     WriteLog "                                   " "${ML_TEST_LOG}"
-
 fi
 
 #
@@ -648,18 +558,7 @@ fi
 # End of ML test
 #
 
-
 cd ${OBT_BIN_DIR}
-
-#
-#---------------------------
-#
-# Stop HPCC Systems
-#
-
-#WriteLog "Stop HPCC Systems ${TARGET_PLATFORM}" "${ML_TEST_LOG}"
-
-#StopHpcc "${ML_TEST_LOG}"
 
 WriteLog "End of Machine Learning test" "${ML_TEST_LOG}"
 

@@ -1,7 +1,6 @@
 #!/bin/bash
 PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
-
 #
 #------------------------------
 #
@@ -12,7 +11,6 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 #. ./timestampLogger.sh
 
-
 #
 #----------------------------------------------------
 #
@@ -21,15 +19,13 @@ PS4='+(${BASH_SOURCE}:${LINENO}): ${FUNCNAME[0]:+${FUNCNAME[0]}(): }'
 
 GetFreeMem()
 {
-    #freeMem=$( free | egrep "^(Mem)" | awk '{ print $7 }' )
-    freeMem=$( free | egrep "^(Mem)" | awk '{ print $4 }' )
+    freeMem=$( free | grep -E "^(Mem)" | awk '{ print $4 }' )
     echo ${freeMem}
 }
 
 GetFreeMemGB()
 {
-    #freeMemGB=$(  free -g | egrep "^(Mem)" | awk '{print $7"GB from "$2"GB" }' )
-    freeMemGB=$(  free -g | egrep "^(Mem)" | awk '{print $4"GB from "$2"GB" }' )
+    freeMemGB=$( free -g | grep -E "^(Mem)" | awk '{print $4"GB from "$2"GB" }' )
     echo ${freeMemGB}
 }
 
@@ -68,7 +64,6 @@ KillCheckDiskSpace()
     done;
     [[ -f ./myinfo.pid ]] && rm ./myinfo.pid
 
-
     sleep 1
 
     WriteLog "Kill port logger" "$1"
@@ -76,11 +71,8 @@ KillCheckDiskSpace()
     then
        sudo kill $( cat ./portlog.pid )
        rm ./portlog.pid
-    fi
-    
-
+    fi  
 }
-
 
 StopHpcc()
 {
@@ -88,7 +80,7 @@ StopHpcc()
     WriteLog "Current status:\n${hpccComponenets}" "$1"
     
     WriteLog "Stop HPCCSystems" "$1"
-    hpccRunning=$( ${HPCC_SERVICE} stop  | egrep 'still' | wc -l )
+    hpccRunning=$( ${HPCC_SERVICE} stop  | grep -E 'still' | wc -l )
     WriteLog "${hpccRunning} running component(s)" "$1"
     
     if [[ $hpccRunning -ne 0 ]]
@@ -113,7 +105,6 @@ StopHpcc()
     WriteLog "Current status:\n${hpccComponenets}" "$1"
 }
 
-
 ExitEpilog()
 {
     WriteLog "Stop disk space checker" "$1"
@@ -131,10 +122,8 @@ ExitEpilog()
     myParent=$(ps -o comm=  $PPID)
     myTrace=$( local frame=0; while caller $frame; do ((frame++)); done )
     WriteLog "End of OBT. Something went wrong: in '${myParent}' ($2\n${myTrace})." "$1"
-    #echo "End of OBT"
 
     echo "End of OBT on ${OBT_SYSTEM} with ${BRANCH_ID}. Somethng went wrong: in '${myParent}' ($2\n${myTrace}).\nError:$3" | mailx -s "Problem with OBT on ${OBT_SYSTEM} with ${BRANCH_ID}" -u $USER ${ADMIN_EMAIL_ADDRESS}
-
 
     if [ "$2." == "$2" ]
     then
@@ -158,9 +147,8 @@ KillJava()
         WriteLog "Now, there are ${javaInstances} instances of Java running." "$1"
     fi
 
-    freeMemGB=$(  free -g | egrep "^(Mem)" | awk '{print $4"GB from "$2"GB" }' )
+    freeMemGB=$(  free -g | grep -E "^(Mem)" | awk '{print $4"GB from "$2"GB" }' )
     WriteLog "The free memory is (${freeMemGB})!" "$1"
-    
 }
 
 LatestBrRelease()
@@ -183,36 +171,36 @@ LatestBrRelease()
             #            list git      get given candidates                  convert release number to '0'          sort       get the     remove trailing
             #            branches                                            prefixed to reach proper sort order    them       first one   '0's
             #
-            releaseId=$( git branch | egrep 'te\-'${CANDIDATE}'.([0-9].*)' | gawk -F. '{ printf("%03d\n", $3); }' | sort -gr | head -n 1 | tr -d "^0" )
+            releaseId=$( git branch | grep -E 'te\-'${CANDIDATE}'.([0-9].*)' | gawk -F. '{ printf("%03d\n", $3); }' | sort -gr | head -n 1 | tr -d "^0" )
             popd > /dev/null 2&>1
 
             echo $releaseId
         else
             echo "No source dir. Exit."
-            #exit -1
         fi
     else
         echo "Missing candidate. Exit."
-        #exit -1
     fi
 }
 
 ElementIn()
 {
     lookFor=$1
+    
     if [[ -n "$2" ]]
     then
-        arr="$2"
+        arr=($@)
     fi
     
     local e
-    for e in arr
+    for e in ${arr[@]:1}
     do
         if [[ "$e" == "$lookFor" ]]
         then
             return 1
         fi
     done
-    return 0
     
+    return 0
 }
+

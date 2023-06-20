@@ -12,7 +12,7 @@ ulimit -u 524288
 ulimit -n 524288
 ulimit -c unlimited
 
-echo "ulimits: $( ulimit -a | egrep '[pr]ocesses|open|stack|core' )"
+echo "ulimits: $( ulimit -a | grep -E '[pr]ocesses|open|stack|core' )"
 
 printf " Outter loop         : %6d\n" "${OUTTER_LOOP_COUNT}"
 printf " inner loop          : %6d\n" "${INNER_LOOP_COUNT}"

@@ -29,28 +29,28 @@ echo "Current year and month: $YM"
 pushd $HOME
 
 echo "Start hthor log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | egrep $YM | sort | zip -u HthorLogCollection-$YM -@ > HthorLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'hthor.*.log' -type f -print | grep -E $YM | sort | zip -u HthorLogCollection-$YM -@ > HthorLogCollection-$YM.log &
 
 echo "Start thor log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | egrep $YM | sort | zip -u ThorLogCollection-$YM -@ > ThorLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'thor.*.log' -type f -print | grep -E $YM | sort | zip -u ThorLogCollection-$YM -@ > ThorLogCollection-$YM.log &
 
 echo "Start roxie log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | egrep $YM | sort | zip -u RoxieLogCollection-$YM -@  > RoxieLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'roxie.*.log' -type f -print | grep -E $YM | sort | zip -u RoxieLogCollection-$YM -@  > RoxieLogCollection-$YM.log &
 
 echo "Start unit test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | egrep $YM | sort | zip -u UnittestsLogCollection-$YM -@  > UnittestsLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'unittest*.log' -type f -print | grep -E $YM | sort | zip -u UnittestsLogCollection-$YM -@  > UnittestsLogCollection-$YM.log &
 
 echo "Start ML test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'ml*.log' -type f -print | egrep $YM | sort | zip -u MlLogCollection-$YM -@  > MlLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'ml*.log' -type f -print | grep -E $YM | sort | zip -u MlLogCollection-$YM -@  > MlLogCollection-$YM.log &
 
 echo "Start WUTool test log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | egrep $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'wutooltest*.log' -type f -print  | grep -E $YM | sort | zip -u WutooltestLogCollection-$YM -@  > WutooltestLogCollection-$YM.log &
 
 echo "Start build log collection..."
-exec find ${STAGING_DIR_ROOT} -iname '*build*.log' -type f -print | egrep $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname '*build*.log' -type f -print | grep -E $YM | sort | zip -u BuildLogCollection-$YM  -@  > BuildLogCollection-$YM.log &
 
 echo "Start misc (report.htm, GlobalExclusion and git_2days) log collection..."
-exec find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f | egrep $YM | sort | zip -u MiscLogCollection-$YM  -@  > MiscLogCollection-$YM.log &
+exec find ${STAGING_DIR_ROOT} -iname 'report.html' -o -iname 'GlobalExclusion.log' -o -iname 'git_2days.log' -type f | grep -E $YM | sort | zip -u MiscLogCollection-$YM  -@  > MiscLogCollection-$YM.log &
 
 echo "Wait for processes finished."
 

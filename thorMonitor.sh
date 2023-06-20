@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# while true; do failed=$( tail -n100 regress-2019-10-28_09-23-43.log | egrep -c  'Fail' ); echo -e $(date "+%Y-%m-%d %H:%M:%S: ")$failed; if [[ $failed -ge 5 ]]; then sudo service hpcc-init -c mythor restart; sudo service hpcc-init -c mythor restart; sleep 5m; fi; sleep 1m; done
+# while true; do failed=$( tail -n100 regress-2019-10-28_09-23-43.log | grep -E -c  'Fail' ); echo -e $(date "+%Y-%m-%d %H:%M:%S: ")$failed; if [[ $failed -ge 5 ]]; then sudo service hpcc-init -c mythor restart; sudo service hpcc-init -c mythor restart; sleep 5m; fi; sleep 1m; done
 
 while true
 do
@@ -16,7 +16,7 @@ do
         # 2. check if current "Suite: thor" in regress log file
 
     echo -n " $logFile"
-        isThor=$(  egrep  'Suite: ' $logFile | tail -n 1 | egrep -c 'thor' )
+        isThor=$(  grep -E  'Suite: ' $logFile | tail -n 1 | grep -E -c 'thor' )
 
         if [[ $isThor -eq 0 ]]
         then
@@ -24,7 +24,7 @@ do
         else
             echo -n ", Engine is Thor"
 
-            failed=$( tail -n100 $logFile | egrep -c  'Fail' )
+            failed=$( tail -n100 $logFile | grep -E -c  'Fail' )
 
             echo -n ", failed: $failed" 
 

@@ -9,7 +9,7 @@ import sys
 #import traceback
 import linecache
 from datetime import date, timedelta
-
+from itertools import izip
 
 def PrintException(msg = ''):
     exc_type, exc_obj, tb = sys.exc_info()
@@ -18,7 +18,7 @@ def PrintException(msg = ''):
     filename = f.f_code.co_filename
     linecache.checkcache(filename)
     line = linecache.getline(filename, lineno, f.f_globals)
-    print(('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg)))
+    print ('EXCEPTION IN (%s, LINE %s CODE:"%s"): %s' % ( filename, lineno, line.strip(), msg))
 
 class ReportedTestCasesHistory(object):
     
@@ -93,7 +93,7 @@ class ReportedTestCasesHistory(object):
                     
     def grouped(self, iterable, n):
         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-        return zip(*[iter(iterable)]*n)
+        return izip(*[iter(iterable)]*n)
          
     def readFile(self):
         #self.stats = { 'Bad': 0,  'Ugly': 0, 'Ugly and Bad': 0, 'Good': 0, 'Known': 0, 'Active': 0 }
@@ -150,12 +150,12 @@ class ReportedTestCasesHistory(object):
                     
         self.testNames = sorted(self.testNames)
         if self.verbose:
-            print((self.testNames))
+            print(self.testNames)
             for actDate in sorted(self.history):
                 print (actDate)
-                print((sorted(self.history[actDate])))
+                print (sorted(self.history[actDate]))
             
-            print(("Oldest day: %s, newest days : %s" % (str(self.oldestDay), str(self.newestDay)) ))
+            print("Oldest day: %s, newest days : %s" % (str(self.oldestDay), str(self.newestDay)) )
         
     def buildHistoryTable(self,  imagePath = None):
         if self.numberOfDaysUsed == -1:
@@ -254,8 +254,8 @@ class ReportedTestCasesHistory(object):
         
         if self.verbose:
             print("\n")
-            print((self.historyTableHeader))
-            print((self.historyTable))
+            print(self.historyTableHeader)
+            print(self.historyTable)
         pass
         
     def getHistoryTable(self):
@@ -324,9 +324,9 @@ if __name__ == '__main__':
     rtch.readFile()
     rtch.buildHistoryTable('http://10.241.40.12/common/nightly_builds/HPCC/master/2018-07-23/CentOS_Linux_7/CE/platform/test/diagrams')
     print('---------------------------------------')
-    print((rtch.getHistoryHtml()))
+    print(rtch.getHistoryHtml())
     print('---------------------------------------')
-    print((rtch.getStats()))
+    print(rtch.getStats())
     print('---------------------------------------')
     
     # Test with use all days data
@@ -343,9 +343,9 @@ if __name__ == '__main__':
     rtch.buildHistoryTable()
     
     print('---------------------------------------')
-    print((rtch.getHistoryTable()))
+    print(rtch.getHistoryTable())
     print('---------------------------------------')
-    print((rtch.getHistoryHtml()))
+    print(rtch.getHistoryHtml())
     print('---------------------------------------')
     
     # Add a new record

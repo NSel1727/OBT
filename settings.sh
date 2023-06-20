@@ -9,7 +9,7 @@ set -a
 # Get system info 
 #
 
-SYSTEM_ID=$( cat /etc/*-release | egrep -i "^PRETTY_NAME" | cut -d= -f2 | tr -d '"' )
+SYSTEM_ID=$( cat /etc/*-release | grep -E -i "^PRETTY_NAME" | cut -d= -f2 | tr -d '"' )
 if [[ "${SYSTEM_ID}" == "" ]]
 then
     SYSTEM_ID=$( cat /etc/*-release | head -1 )
@@ -245,7 +245,7 @@ ESP_IP=127.0.0.1
 # For our multi node performance cluster:
 #ESP_IP=10.241.40.5
 
-LOCAL_IP_STR=$( ip -f inet -o addr | egrep -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
+LOCAL_IP_STR=$( ip -f inet -o addr | grep -E -i 'eth0|ib0' | sed -n "s/^.*inet[[:space:]]\([0-9]*\).\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\).*$/\1\.\2\.\3\.\4/p" )
 
 ADMIN_EMAIL_ADDRESS="attila.vamos@gmail.com"
 
